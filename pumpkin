@@ -1,0 +1,53 @@
+#!/bin/bash
+InstanceId=$(ec2metadata --instance-id)
+HostIp=$(ec2metadata --local-ipv4)
+AmiId=$(ec2metadata --ami-id)
+MyKeyPair=$(ec2metadata --user-data)
+SecGroup=$(ec2metadata --security-groups | grep ssh)
+
+Size=${1:-t2.medium}
+
+Script=$(mktemp)
+Log=$(mktemp)
+
+cat >$Script <<EOF
+
+# Install current version of aws tools
+curl "https://s3.amazonaws.com/aws-cli/awscli-bundle.zip" -o "awscli-bundle.zip"
+
+# Ubuntu did not ship with unzip ?
+# hat tip to http://serverfault.com/questions/530114/are-there-other-options-to-unzip-a-file-in-ubuntu-besides-unzip
+python <<PY
+import zipfile
+with zipfile.ZipFile('awscli-bundle.zip', 'r') as z : z.extractall('.')
+PY
+
+chmod +x awscli-bundle/install
+sudo ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
+
+ssh -o StrictHostKeyChecking=no -i ~/.ssh/"$MyKeyPair".pem ubuntu@$HostIp sudo shutdown -h 1 Turning into a $Size pumpkin
+  
+sleep 100
+  
+aws ec2 modify-instance-attribute --instance-id $InstanceId --instance-type "{\"Value\": \"$Size\"}"
+sleep 10
+aws ec2 start-instances --instance-ids $InstanceId
+
+
+sudo shutdown -h now
+EOF
+
+aws ec2 run-instances --image-id $AmiId --count 1 --instance-type t2.small --key-name $MyKeyPair --security-groups $SecGroup --instance-initiated-shutdown-behavior terminate | tee $Log
+
+Godmother=$(jq -r .Instances[0].PrivateIpAddress < $Log)
+GodmotherInstanceId=$(jq -r .Instances[0].InstanceId < $Log)
+aws ec2 create-tags --resources $GodmotherInstanceId --tags "Key=Name,Value=FairyGodmother"
+
+# Wait until it's ready
+while aws ec2 describe-instance-status --instance-ids $GodmotherInstanceId | grep -q initializing; do echo initializing && sleep 11; done
+
+scp -o StrictHostKeyChecking=no -i ~/.ssh/"$MyKeyPair".pem ~/.ssh/"$MyKeyPair".pem ubuntu@$Godmother:.ssh
+scp -o StrictHostKeyChecking=no -i ~/.ssh/"$MyKeyPair".pem -r ~/.aws ubuntu@$Godmother:
+scp -o StrictHostKeyChecking=no -i ~/.ssh/"$MyKeyPair".pem $Script ubuntu@$Godmother:script
+
+ssh -o StrictHostKeyChecking=no -i ~/.ssh/"$MyKeyPair".pem ubuntu@$Godmother screen -d -m bash script
