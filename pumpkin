@@ -5,7 +5,7 @@ AmiId=$(ec2metadata --ami-id)
 MyKeyPair=$(ec2metadata --user-data)
 SecGroup=$(ec2metadata --security-groups | grep ssh)
 
-Size=${1:-t2.medium}
+Size=${1:-t2.large}
 
 Script=$(mktemp)
 Log=$(mktemp)
@@ -44,7 +44,9 @@ GodmotherInstanceId=$(jq -r .Instances[0].InstanceId < $Log)
 aws ec2 create-tags --resources $GodmotherInstanceId --tags "Key=Name,Value=FairyGodmother"
 
 # Wait until it's ready
-while aws ec2 describe-instance-status --instance-ids $GodmotherInstanceId | grep -q initializing; do echo initializing && sleep 11; done
+while aws ec2 describe-instance-status --instance-ids $GodmotherInstanceId | grep -q initializing; do
+    echo initializing && sleep 11;
+done
 
 scp -o StrictHostKeyChecking=no -i ~/.ssh/"$MyKeyPair".pem ~/.ssh/"$MyKeyPair".pem ubuntu@$Godmother:.ssh
 scp -o StrictHostKeyChecking=no -i ~/.ssh/"$MyKeyPair".pem -r ~/.aws ubuntu@$Godmother:
