@@ -5,7 +5,7 @@ AmiId=$(ec2metadata --ami-id)
 MyKeyPair=$(ec2metadata --user-data)
 SecGroup=$(ec2metadata --security-groups | grep ssh)
 
-Size=${1:-t2.large}
+Size=${1:-t2.micro}
 
 Script=$(mktemp)
 Log=$(mktemp)
