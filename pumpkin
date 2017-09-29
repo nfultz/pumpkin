@@ -17,10 +17,7 @@ curl "https://s3.amazonaws.com/aws-cli/awscli-bundle.zip" -o "awscli-bundle.zip"
 
 # Ubuntu did not ship with unzip ?
 # hat tip to http://serverfault.com/questions/530114/are-there-other-options-to-unzip-a-file-in-ubuntu-besides-unzip
-python <<PY
-import zipfile
-with zipfile.ZipFile('awscli-bundle.zip', 'r') as z : z.extractall('.')
-PY
+python -m zipfile -e awscli-bundle.zip .
 
 chmod +x awscli-bundle/install
 sudo ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
