@@ -10,7 +10,7 @@ To turn into a pumpkin after a long job:
 
 To turn into a big pumpkin immediately:
 
-    pumpking m4.10xlarge
+    pumpkin m4.10xlarge
 
 ## The problem
 
