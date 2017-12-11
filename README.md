@@ -6,11 +6,11 @@ This is a short script for AWS to downsize a box after a heavy job has finished.
 
 To turn into a pumpkin after a long job:
 
-    ./long_job.sh && pumpkin
+    ./long_job.sh && pumpkin2
 
 To turn into a big pumpkin immediately:
 
-    pumpkin m4.10xlarge
+    pumpkin2 m4.10xlarge
 
 ## The problem
 
@@ -34,6 +34,13 @@ To turn into a big pumpkin immediately:
   Amazon provides a CLI tool for most of the services, which is capable of resizing a box; however,
 it is not able to resize a box that is running; you can't resize yourself.
 
-  To work around this, you can spin up a new temporary box, which can shut down the dev box, resize
-and restart it from a script, and then clean up after itself. 
+  To work around this, you can instead create a lambda function, which can shut down the dev box, resize
+and restart it.
+
+## Setup
+
+1. Create a AWS lambda function using `lambda_pumpkin.py` - it will need EC2 permissions.
+2. Copy `pumpkin2` to your box, and run it as needed.
+
+Old `pumpkin` is still here for historical reasons, but you probably don't want to use it.
 
