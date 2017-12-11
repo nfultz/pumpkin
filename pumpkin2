@@ -1,0 +1,7 @@
+#!/bin/bash
+Size=${1:-t2.micro}
+InstanceId=${2:-$(ec2metadata --instance-id)}
+
+Payload=$(printf '{"instanceID":"%s", "instanceType":"%s"}' $InstanceId $Size)
+
+aws lambda invoke --function-name "pumpkin" --payload "$Payload" /dev/stdout
