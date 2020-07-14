@@ -44,3 +44,23 @@ and restart it.
 
 Old `pumpkin` is still here for historical reasons, but you probably don't want to use it.
 
+
+### IAM Permissions deep dive
+
+The way pumpkin works is by using a lambda function to resize a box in-situ. The lambda will need 
+permission to modify the ec2 node, and the node will need permission to call the lambda.
+
+1. When creating the lambda, it needs Ec2 permission to Shutdown, Modify, and Start.
+    * *IMPORTANT:* Crank the timeout to like 5 minutes. The default (3s) is long enough to shutdown the box, but too short to automatically restart it.
+    * You may want to restrict which boxes pumpkin can cycle using tags. See also https://aws.amazon.com/premiumsupport/knowledge-center/iam-ec2-resource-tags/
+2. Create a role that can invoke the lambda function
+    * And a policy holding that role
+    * Add the policy to the ec2 node - can use the same tag conditions as above if you like. 
+    * If using tags, set them also
+
+
+
+
+
+
+
